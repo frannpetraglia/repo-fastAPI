@@ -2,22 +2,24 @@ from sqlalchemy import Column, String, Integer, Table, ForeignKey, UniqueConstra
 from sqlalchemy.orm import relationship
 from database import Base, localSession
 
+#crea las tablas de la base de datos
 
 class Materia(Base):
     __tablename__ = 'materia'
     id = Column(Integer, primary_key=True, index=True)
-    nombre = Column(String, unique=True)
+    nombre = Column(String(50), index=True, unique=True)
+    carrera = Column(String(70))
 
 class Aula(Base):
     __tablename__ = 'aula'
     id = Column(Integer, primary_key=True, index=True)
-    nombre = Column(String, unique=True)
+    nombre = Column(String(15), unique=True)
 
 class Asignar_Aulas_Materias(Base):
     __tablename__ = 'asignar_aulas_materias'
     id_aula = Column(Integer, ForeignKey('aula.id'), primary_key=True)
     id_materia = Column(Integer, ForeignKey('materia.id'), primary_key=True)
-    dia = Column(String)
+    dia = Column(String(10))
     hora_inicial = Column(Integer)
     hora_final = Column(Integer)
 
