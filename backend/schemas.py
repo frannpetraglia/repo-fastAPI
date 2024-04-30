@@ -26,3 +26,6 @@ class Asignar_Aulas_Materias_Data(BaseModel):
     dia: str
     hora_inicial: int
     hora_final: int
+
+class Asignar_Aulas_Materias_Id(Asignar_Aulas_Materias_Data):
+    id: int

@@ -7,6 +7,7 @@ from fastapi import HTTPException, status
 
 #funciones para realizar acciones en la base de datos
 #aqui interactuo directamente con la base de datos
+#estas funciones las utilizo en los endpoints de main.py
 
 
 #**LEER**
@@ -64,6 +65,14 @@ def get_Materia_by_id(db: Session, id: int):
 #muestra las clases activas de una materia, buscada segun el nombre de la materia
 #*******revisar limite de resultados, para que no me explote la app*****
 
+#muestra una clase segun su id
+def get_clase_activa_by_id(db: Session, id: int):
+    try:
+        return db.query(Asignar_Aulas_Materias).filter(Asignar_Aulas_Materias.id == id).first()
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=f"Error al buscar la clase por ID en la base de datos: {str(e)}")
+
+#muestra todas las clases activas de esa materia, y busca segun el nombre de la materia
 def get_clases_activas_por_nombre_materia(db: Session, nombre_materia: str):
     try:
         #patrón de expresión regular para el nombre de la materia
@@ -75,14 +84,14 @@ def get_clases_activas_por_nombre_materia(db: Session, nombre_materia: str):
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=f"Error al buscar las clases activas por nombre de materia en la base de datos: {str(e)}")
 
-#muestra las clases activas de tal día. Y las busca por minúsculas
+#muestra todas las clases activas de tal día. Y las busca por minúsculas
 def get_clases_activas_por_dia(db: Session, dia: str):
     try:
         return db.query(Asignar_Aulas_Materias).filter(func.lower(Asignar_Aulas_Materias.dia) == dia.lower()).all()
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=f"Error al buscar las clases activas por día en la base de datos: {str(e)}")
 
-#mustra las clases activas de tal aula. Y las busca por minuscula
+#mustra todas las clases activas de tal aula. Y las busca por minuscula
 def get_clases_activas_por_nombre_aula(db: Session, nombre_aula: str):
     try:
         nombre_aula_lower = nombre_aula.lower() 

@@ -17,8 +17,9 @@ class Aula(Base):
 
 class Asignar_Aulas_Materias(Base):
     __tablename__ = 'asignar_aulas_materias'
-    id_aula = Column(Integer, ForeignKey('aula.id'), primary_key=True)
-    id_materia = Column(Integer, ForeignKey('materia.id'), primary_key=True)
+    id = Column(Integer, primary_key=True, index=True)
+    id_aula = Column(Integer, ForeignKey('aula.id'))
+    id_materia = Column(Integer, ForeignKey('materia.id'))
     dia = Column(String(10))
     hora_inicial = Column(Integer)
     hora_final = Column(Integer)
