@@ -68,7 +68,7 @@ def get_clase_by_id(id, db: Session = Depends(get_db)):
 
 #desp veo como lo uso
 #pide todas las clases activas de una materia segun su nombre
-@app.get("/api/clases/por-materia/{nom}", response_model=list[Asignar_Aulas_Materias_Id])
+@app.get("/api/clases/buscar-por-materia/{nom}", response_model=list[Asignar_Aulas_Materias_Id])
 def get_clases_por_nombre_materia(nom: str, db: Session = Depends(get_db)):
     if not nom:
         raise HTTPException(status_code=400, detail="El nombre de la materia no puede estar vacío")    
@@ -81,7 +81,7 @@ def get_clases_por_nombre_materia(nom: str, db: Session = Depends(get_db)):
 
 
 #pide todas las clases activas de un aula segun su nombre
-@app.get("/api/clases/por-aula/{nom}", response_model=list[Asignar_Aulas_Materias_Id])
+@app.get("/api/clases/buscar-por-aula/{nom}", response_model=list[Asignar_Aulas_Materias_Id])
 def get_clases_por_nombre_aula(nom: str, db: Session = Depends(get_db)):
     if not nom:
         raise HTTPException(status_code=400, detail="El nombre del aula no puede estar vacío")    
@@ -93,7 +93,7 @@ def get_clases_por_nombre_aula(nom: str, db: Session = Depends(get_db)):
     return clases_x_aula
 
 #pide todas las clases activas de un dia especifico
-@app.get("/api/clases/por-dia/{dia}", response_model=list[Asignar_Aulas_Materias_Id])
+@app.get("/api/clases/buscar-por-dia/{dia}", response_model=list[Asignar_Aulas_Materias_Id])
 def get_clases_por_dia(dia: str, db: Session = Depends(get_db)):
     if not dia:
         raise HTTPException(status_code=400, detail="El string dia no puede estar vacío")   
@@ -106,6 +106,127 @@ def get_clases_por_dia(dia: str, db: Session = Depends(get_db)):
 
 #ESCRITURA DE DATOS
 
+@app.post("/api/aulas/crear-aula", response_model= AulaData, status_code=status.HTTP_201_CREATED)
+def crear_aula(aula: AulaData, db: Session = Depends(get_db)):
+    try:
+        nueva_aula = crud.create_Aula(db=db, aula=aula)
+        return nueva_aula  # Si se crea sin problemas, devuelve 201
+    except HTTPException as he:
+        raise he  # Ya lo manejo en crud, solo lo dejo para q se propague aca
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error inesperado: {str(e)}")
+
+@app.post("/api/materias/crear-materia", response_model= MateriaData, status_code=status.HTTP_201_CREATED)
+def crear_materia(materia: MateriaData, db: Session = Depends(get_db)):
+    try:
+        nueva_materia = crud.create_Materia(db=db, materia=materia)
+        return nueva_materia
+    except HTTPException as he:
+        raise he  # muestro la excepcion HTTP directamente si fue levantada en crud
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error inesperado: {str(e)}")
+    
+@app.post("/api/clases/crear-clase", response_model= Asignar_Aulas_Materias_Data, status_code=status.HTTP_201_CREATED)
+def crear_clase(clase: Asignar_Aulas_Materias_Data, db: Session = Depends(get_db)):
+    try:
+        nueva_clase = crud.create_Clase(db=db, clase=clase)
+        return nueva_clase
+    except ValueError as ve:  #maneje otras excepciones en crud, dejo aqui las http
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error inesperado: {str(e)}")
+
+
+#EDITAR DATOS
+
+#endpoint para editar un aula 
+
+@app.put("/api/aulas/editar-aula/{id: int}", response_model= AulaData, status_code=status.HTTP_200_OK)
+def editar_aula(id: int, nueva_info: AulaData, db: Session = Depends(get_db)):
+    try:
+        aula_actualizada = crud.editar_Aula(db=db, id=id, nueva_info=nueva_info)
+        return aula_actualizada
+    except HTTPException as e:
+        raise e  #para relanzar las excepciones por errores de integridad y no encontradas, ya lanzadas en el crud
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error inesperado: {str(e)}")
+    
+
+#para editar una materia
+    
+@app.put("/api/materias/editar-materia/{id: int}", response_model= MateriaData, status_code=status.HTTP_200_OK)
+def editar_materia(id: int, nueva_info: MateriaData, db: Session = Depends(get_db)):
+    try:
+        materia_actualizada = crud.editar_Materia(db=db, id=id, nueva_info=nueva_info)
+        return materia_actualizada
+    except HTTPException as e:
+        raise e  #para relanzar las excepciones por errores de integridad y no encontradas, ya lanzadas en el crud
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error inesperado: {str(e)}")
+    
+#para editar una clase activa
+
+@app.put("/api/clases/editar-clase/{id: int}", response_model= Asignar_Aulas_Materias_Data, status_code=status.HTTP_200_OK)
+def editar_clase(id: int, nueva_info: Asignar_Aulas_Materias_Data, db: Session = Depends(get_db)):
+    clase_actualizada = crud.editar_Clase_Activa(db=db, id=id, nueva_info=nueva_info)
+    if clase_actualizada:
+        return clase_actualizada
+    else:
+        raise HTTPException(status_code=404, detail=f"No se encontró la clase activa con el id {id}")
+
+
+#ELIMINAR DATOS
+
+#eliminar una materia por el nombre
+@app.delete("/api/materias/borrar-materia-por-nombre/{nom}", status_code=200)
+def delete_materia_by_nombre(nom: str, db: Session = Depends(get_db)):
+    try:
+        resultado = crud.delete_materia_by_nombre(db=db, nom=nom)
+        return resultado
+    except HTTPException as e:
+        return e
+    
+#eliminar una materia por su id
+@app.delete("/api/materias/borrar-materia-por-id/{id: int}", status_code=200)
+def delete_materia_by_id(id: int, db: Session = Depends(get_db)):
+    try:
+        resultado = crud.delete_materia_by_id(db=db, id=id)
+        return resultado
+    except HTTPException as e:
+        return e
+    
+#eliminar un aula por su nombre 
+@app.delete("/api/aulas/borrar-aula-por-nombre/{nom}", status_code=200)
+def borrar_aula_by_nombre(nom: str, db: Session = Depends(get_db)):
+    try:
+        resultado = crud.delete_aula_by_nombre(db=db, nom=nom)
+        return resultado
+    except HTTPException as e:
+        return e   
+    
+#eliminar un aula por el id
+
+@app.delete("/api/aulas/borrar-aula-por-id/{id: int}", status_code=200)
+def borrar_aula_by_id(id: int, db: Session = Depends(get_db)):
+    try:
+        res = crud.delete_aula_by_id(db=db, id=id)
+        return res
+    except HTTPException as e:
+        return e    
+    
+#eliminar una clase segun su id
+
+@app.delete("/api/clases/borrar-clase-por-id/{id: int}", status_code= 200)
+def borrar_clase_por_id(id: int, db: Session = Depends(get_db)):
+    try:
+        res = crud.delete_clase(db=db, id=id)
+        return res
+    except HTTPException as e:
+        return e
+    
+
+
+    
 
     
 

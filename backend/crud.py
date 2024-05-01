@@ -184,9 +184,9 @@ def editar_Materia(db: Session, id: int, nueva_info: MateriaData):
     else:
         raise HTTPException(status_code=404, detail="Materia no encontrada.")
     
-#para editar una clase activa
-def editar_Clase_Activa(db: Session, id_aula: int, id_materia: int, nueva_info: Asignar_Aulas_Materias_Data):
-    clase_activa = db.query(Asignar_Aulas_Materias).filter_by(id_aula=id_aula, id_materia=id_materia).first()
+#para editar una clase activa. Esto solo edita los detalles de la clase, si se  quiere cambiar el aula o la materia, se debe crear una nueva clase
+def editar_Clase_Activa(db: Session, id: int, nueva_info: Asignar_Aulas_Materias_Data):
+    clase_activa = db.query(Asignar_Aulas_Materias).filter(Asignar_Aulas_Materias.id == id).first()
     if clase_activa:
         try:
             clase_activa.dia = nueva_info.dia
@@ -269,18 +269,14 @@ def delete_aula_by_id(db: Session, aula_id: int):
 
 #borrar una clase pidiendo todos los datos
 #esto porque una misma materia se puede dar en una clase en mas de un dia, o en mas de 1 vez en un mismo dia
-def delete_clase(db: Session, id_aula: int, id_materia: int, dia: str, hora_inicial: int, hora_final: int):
-    clase = db.query(Asignar_Aulas_Materias).filter(
-        Asignar_Aulas_Materias.id_aula == id_aula,
-        Asignar_Aulas_Materias.id_materia == id_materia,
-        Asignar_Aulas_Materias.dia == dia,
-        Asignar_Aulas_Materias.hora_inicial == hora_inicial,
-        Asignar_Aulas_Materias.hora_final == hora_final
-    ).first()
+def delete_clase(db: Session, clase_id: int):
+    clase = db.query(Asignar_Aulas_Materias).filter(Asignar_Aulas_Materias.id == clase_id).first()
     if clase:
         db.delete(clase)
         db.commit()
         return {"message": "Clase eliminada exitosamente"}
     else:
         raise HTTPException(status_code=404, detail="Clase no encontrada.")
+    
+
     
