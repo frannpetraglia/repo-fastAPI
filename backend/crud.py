@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.orm import joinedload
 from models import Aula, Materia, Asignar_Aulas_Materias, re
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -78,24 +79,38 @@ def get_clases_activas_por_nombre_materia(db: Session, nombre_materia: str):
         #patrón de expresión regular para el nombre de la materia
         patron_regex = f'%{re.escape(nombre_materia)}%'  # eliminar caracteres especiales
         # Busqueda del nombre mediante ilike con la expresión regular
-        return db.query(Asignar_Aulas_Materias).\
+        clases = db.query(Asignar_Aulas_Materias).\
             join(Materia, Asignar_Aulas_Materias.id_materia == Materia.id).\
-            filter(func.lower(Materia.nombre).ilike(func.lower(patron_regex))).all()
+            join(Aula, Asignar_Aulas_Materias.id_aula == Aula.id).\
+            filter(func.lower(Materia.nombre).ilike(func.lower(patron_regex))).\
+            options(joinedload(Asignar_Aulas_Materias.aula), joinedload(Asignar_Aulas_Materias.materia)).\
+            all()
+        
+        return clases
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=f"Error al buscar las clases activas por nombre de materia en la base de datos: {str(e)}")
 
 #muestra todas las clases activas de tal día. Y las busca por minúsculas
 def get_clases_activas_por_dia(db: Session, dia: str):
     try:
-        return db.query(Asignar_Aulas_Materias).filter(func.lower(Asignar_Aulas_Materias.dia) == dia.lower()).all()
+        clases = db.query(Asignar_Aulas_Materias).\
+            filter(func.lower(Asignar_Aulas_Materias.dia) == dia.lower()).\
+            options(joinedload(Asignar_Aulas_Materias.aula), joinedload(Asignar_Aulas_Materias.materia)).\
+            all()
+        return clases
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=f"Error al buscar las clases activas por día en la base de datos: {str(e)}")
 
-#mustra todas las clases activas de tal aula. Y las busca por minuscula
+#muestra las clases activas de un aula segun su nombre, y pasa el nombre a minuscula
 def get_clases_activas_por_nombre_aula(db: Session, nombre_aula: str):
     try:
         nombre_aula_lower = nombre_aula.lower() 
-        return db.query(Asignar_Aulas_Materias).join(Aula).filter(func.lower(Aula.nombre) == nombre_aula_lower).all()
+        clases = db.query(Asignar_Aulas_Materias).\
+            join(Aula).join(Materia).\
+            filter(func.lower(Aula.nombre) == nombre_aula_lower).\
+            options(joinedload(Asignar_Aulas_Materias.aula), joinedload(Asignar_Aulas_Materias.materia)).\
+            all()
+        return clases
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=f"Error al buscar las clases activas por nombre de aula en la base de datos: {str(e)}")
 
@@ -267,8 +282,7 @@ def delete_aula_by_id(db: Session, aula_id: int):
         raise HTTPException(status_code=404, detail="Aula no encontrada.")
     
 
-#borrar una clase pidiendo todos los datos
-#esto porque una misma materia se puede dar en una clase en mas de un dia, o en mas de 1 vez en un mismo dia
+#borrar una clase pidiendo el ID
 def delete_clase(db: Session, clase_id: int):
     clase = db.query(Asignar_Aulas_Materias).filter(Asignar_Aulas_Materias.id == clase_id).first()
     if clase:
