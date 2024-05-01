@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import joinedload
+from sqlalchemy.orm.exc import NoResultFound
 from models import Aula, Materia, Asignar_Aulas_Materias, re
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -34,15 +35,35 @@ def get_Asignar_Aulas_Materias(db: Session):
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=f"Error al recuperar las clases activas de la base de datos: {str(e)}")
 
-#muestra las aulas segun el nombre escrito
-def get_Aula_by_nombre(db: Session, nom: str):
+
+#este lo uso para el post create_aula. Necesito comprobar por su nombre completo que no existe
+def get_Aula_by_nombre_completo(db: Session, nom: str):
+    try:
+        return db.query(Aula).filter(Aula.nombre.ilike(nom)).one()
+    except NoResultFound:
+        return None
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=f"Error al buscar el aula por nombre en la base de datos: {str(e)}")
+    
+#este lo uso en el post create_materia. Necesito buscar si ya existe la materia, comparando por su nombre completo
+def get_Materia_by_nombre_completo(db: Session, nom: str):
+    try:
+        return db.query(Materia).filter(Materia.nombre.ilike(nom)).one()
+    except NoResultFound:
+        return None
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=f"Error al buscar la materia por nombre en la base de datos: {str(e)}")
+    
+
+#muestra las aulas segun el nombre escrito de forma incompleta
+def get_Aula_by_nombre_incomleto(db: Session, nom: str):
     try:
         return db.query(Aula).filter(Aula.nombre.ilike(f"%{nom}%")).all()
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=f"Error al buscar el aula por nombre en la base de datos: {str(e)}")
 
-#muestra las materias segun el nombre escrito
-def get_Materia_by_nombre(db: Session, nom: str):
+#muestra las materias segun el nombre escrito de forma incompleta
+def get_Materia_by_nombre_incompleto(db: Session, nom: str):
     try:
         return db.query(Materia).filter(Materia.nombre.ilike(f"%{nom}%")).all()
     except SQLAlchemyError as e:
@@ -130,7 +151,8 @@ def create_Aula(db: Session, aula: AulaData):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error inesperado: {str(e)}")
-
+    
+    
 def create_Materia(db: Session, materia: MateriaData):
     try:
         nueva_Materia = Materia(nombre=materia.nombre, carrera=materia.carrera)
@@ -146,9 +168,13 @@ def create_Materia(db: Session, materia: MateriaData):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error inesperado: {str(e)}")
-
+    
 def create_Clase(db: Session, clase: Asignar_Aulas_Materias_Data):
     try:
+        # Comprobación de que la hora final sea mayor que la hora inicial
+        if clase.hora_final <= clase.hora_inicial:
+            raise HTTPException(status_code=400, detail="La hora final debe ser mayor que la hora inicial.")
+
         nueva_clase = Asignar_Aulas_Materias(
             id_aula=clase.id_aula,
             id_materia=clase.id_materia,
@@ -162,11 +188,11 @@ def create_Clase(db: Session, clase: Asignar_Aulas_Materias_Data):
     except IntegrityError as e:
         db.rollback()  
         print(f"Error de integridad: {e}")
-        raise ValueError("Error de integridad, verifica las claves foráneas y restricciones.")
+        raise HTTPException(status_code=400, detail="Error de integridad, verifica las claves foráneas y restricciones.")
     except SQLAlchemyError as e:
         db.rollback()
         print(f"Error general de SQLAlchemy: {e}")
-        raise ValueError("Error al interactuar con la base de datos.")
+        raise HTTPException(status_code=500, detail="Error al interactuar con la base de datos.")    
 
 #**EDITAR**
 

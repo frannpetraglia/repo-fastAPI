@@ -115,16 +115,37 @@ def crear_aula(aula: AulaData, db: Session = Depends(get_db)):
         raise he  # Ya lo manejo en crud, solo lo dejo para q se propague aca
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error inesperado: {str(e)}")
+    
+@app.post("/api/aulas/crear-aula", response_model= AulaData, status_code=status.HTTP_201_CREATED)
+def crear_aula(aula: AulaData, db: Session = Depends(get_db)):
+    # para fijarme si el aula ya existe
+    aulas_existente = crud.get_Aula_by_nombre_completo(db, aula.nombre)
+    if aulas_existente:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="ya hay un aula con ese nombre")
 
-@app.post("/api/materias/crear-materia", response_model= MateriaData, status_code=status.HTTP_201_CREATED)
+    try:
+        nueva_aula = crud.create_Aula(db=db, aula=aula)
+        return nueva_aula  # Si se crea sin problemas, devuelve 201
+    except HTTPException as he:
+        raise he  # Ya lo manejo en crud, solo lo dejo para q se propague aca
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error inesperado: {str(e)}")
+
+    
+@app.post("/api/materias/crear-materia", response_model=MateriaData, status_code=status.HTTP_201_CREATED)
 def crear_materia(materia: MateriaData, db: Session = Depends(get_db)):
+    # Comprobar si la materia ya existe
+    materias_existente = crud.get_Materia_by_nombre_completo(db, materia.nombre)
+    if materias_existente:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="El nombre de la materia ya existe")
+
     try:
         nueva_materia = crud.create_Materia(db=db, materia=materia)
-        return nueva_materia
+        return nueva_materia  # Si se crea sin problemas, devuelve 201
     except HTTPException as he:
-        raise he  # muestro la excepcion HTTP directamente si fue levantada en crud
+        raise he # muestro la excepcion HTTP directamente si fue levantada en crud
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error inesperado: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error inesperado: {str(e)}")
     
 @app.post("/api/clases/crear-clase", response_model= Asignar_Aulas_Materias_Data, status_code=status.HTTP_201_CREATED)
 def crear_clase(clase: Asignar_Aulas_Materias_Data, db: Session = Depends(get_db)):
