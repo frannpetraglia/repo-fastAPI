@@ -3,9 +3,9 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 import crud 
-from database import engine, localSession
+from database import engine, localSession, Base
 from schemas import MateriaData, MateriaId, AulaData, AulaId, Asignar_Aulas_Materias_Data, Asignar_Aulas_Materias_Id
-from models import Base, Materia, Aula, Asignar_Aulas_Materias
+from models import Materia, Aula, Asignar_Aulas_Materias
 
 #para crear las tablas en la base de dato si no estan creadas
 Base.metadata.create_all(bind=engine)
@@ -93,7 +93,7 @@ def get_clases_por_nombre_aula(nom: str, db: Session = Depends(get_db)):
     return clases_x_aula
 
 #pide todas las clases activas de un dia especifico
-@app.get("/api/clases/buscar-por-dia/{dia}", response_model=list[Asignar_Aulas_Materias_Id])
+@app.get("/api/clases/buscar-por-dia/{dia: str}", response_model=list[Asignar_Aulas_Materias_Id])
 def get_clases_por_dia(dia: str, db: Session = Depends(get_db)):
     if not dia:
         raise HTTPException(status_code=400, detail="El string dia no puede estar vacío")   
@@ -106,15 +106,6 @@ def get_clases_por_dia(dia: str, db: Session = Depends(get_db)):
 
 #ESCRITURA DE DATOS
 
-@app.post("/api/aulas/crear-aula", response_model= AulaData, status_code=status.HTTP_201_CREATED)
-def crear_aula(aula: AulaData, db: Session = Depends(get_db)):
-    try:
-        nueva_aula = crud.create_Aula(db=db, aula=aula)
-        return nueva_aula  # Si se crea sin problemas, devuelve 201
-    except HTTPException as he:
-        raise he  # Ya lo manejo en crud, solo lo dejo para q se propague aca
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error inesperado: {str(e)}")
     
 @app.post("/api/aulas/crear-aula", response_model= AulaData, status_code=status.HTTP_201_CREATED)
 def crear_aula(aula: AulaData, db: Session = Depends(get_db)):
@@ -205,7 +196,9 @@ def delete_materia_by_nombre(nom: str, db: Session = Depends(get_db)):
         resultado = crud.delete_materia_by_nombre(db=db, nom=nom)
         return resultado
     except HTTPException as e:
-        return e
+        raise e  # Esto asegura que se lance como una excepción HTTP
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error inesperado: {str(e)}")  # Para capturar cualquier otra excepción
     
 #eliminar una materia por su id
 @app.delete("/api/materias/borrar-materia-por-id/{id: int}", status_code=200)

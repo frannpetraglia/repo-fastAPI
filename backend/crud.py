@@ -1,11 +1,12 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
-from models import Aula, Materia, Asignar_Aulas_Materias, re
+from models import Aula, Materia, Asignar_Aulas_Materias
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from schemas import AulaData, MateriaData, Asignar_Aulas_Materias_Data
 from fastapi import HTTPException, status
+import re
 
 #funciones para realizar acciones en la base de datos
 #aqui interactuo directamente con la base de datos
@@ -260,6 +261,7 @@ def delete_materia_by_nombre(db: Session, nombre: str):
             raise HTTPException(status_code=400, detail="Error de integridad al eliminar la materia.")
     else:
         raise HTTPException(status_code=404, detail="Materia no encontrada.")
+    
     
 #borrar un aula por su nombre. Paso las variables a minusculas
 def delete_aula_by_nombre(db: Session, nombre: str):
