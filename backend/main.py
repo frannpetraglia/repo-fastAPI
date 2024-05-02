@@ -193,7 +193,7 @@ def editar_clase(id: int, nueva_info: Asignar_Aulas_Materias_Data, db: Session =
 @app.delete("/api/materias/borrar-materia-por-nombre/{nom}", status_code=200)
 def delete_materia_by_nombre(nom: str, db: Session = Depends(get_db)):
     try:
-        resultado = crud.delete_materia_by_nombre(db=db, nom=nom)
+        resultado = crud.delete_materia_by_nombre(db=db, nombre=nom)
         return resultado
     except HTTPException as e:
         raise e  # Esto asegura que se lance como una excepción HTTP
@@ -204,7 +204,7 @@ def delete_materia_by_nombre(nom: str, db: Session = Depends(get_db)):
 @app.delete("/api/materias/borrar-materia-por-id/{id: int}", status_code=200)
 def delete_materia_by_id(id: int, db: Session = Depends(get_db)):
     try:
-        resultado = crud.delete_materia_by_id(db=db, id=id)
+        resultado = crud.delete_materia_by_id(db=db, materia_id=id)
         return resultado
     except HTTPException as e:
         return e
@@ -213,7 +213,7 @@ def delete_materia_by_id(id: int, db: Session = Depends(get_db)):
 @app.delete("/api/aulas/borrar-aula-por-nombre/{nom}", status_code=200)
 def borrar_aula_by_nombre(nom: str, db: Session = Depends(get_db)):
     try:
-        resultado = crud.delete_aula_by_nombre(db=db, nom=nom)
+        resultado = crud.delete_aula_by_nombre(db=db, nombre=nom)
         return resultado
     except HTTPException as e:
         return e   
@@ -223,7 +223,7 @@ def borrar_aula_by_nombre(nom: str, db: Session = Depends(get_db)):
 @app.delete("/api/aulas/borrar-aula-por-id/{id: int}", status_code=200)
 def borrar_aula_by_id(id: int, db: Session = Depends(get_db)):
     try:
-        res = crud.delete_aula_by_id(db=db, id=id)
+        res = crud.delete_aula_by_id(db=db, aula_id=id)
         return res
     except HTTPException as e:
         return e    
@@ -233,7 +233,7 @@ def borrar_aula_by_id(id: int, db: Session = Depends(get_db)):
 @app.delete("/api/clases/borrar-clase-por-id/{id: int}", status_code= 200)
 def borrar_clase_por_id(id: int, db: Session = Depends(get_db)):
     try:
-        res = crud.delete_clase(db=db, id=id)
+        res = crud.delete_clase(db=db, clase_id=id)
         return res
     except HTTPException as e:
         return e
