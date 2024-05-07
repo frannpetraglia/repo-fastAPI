@@ -4,6 +4,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from models import Aula, Materia, Asignar_Aulas_Materias
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy import and_
 from schemas import AulaData, MateriaData, Asignar_Aulas_Materias_Data
 from fastapi import HTTPException, status
 import re
@@ -176,6 +177,16 @@ def create_Clase(db: Session, clase: Asignar_Aulas_Materias_Data):
         if clase.hora_final <= clase.hora_inicial:
             raise HTTPException(status_code=400, detail="La hora final debe ser mayor que la hora inicial.")
 
+        # Compruebo si el aula está ocupada en ese día y horario
+        aula_ocupada = db.query(Asignar_Aulas_Materias) \
+                          .filter(Asignar_Aulas_Materias.id_aula == clase.id_aula) \
+                          .filter(Asignar_Aulas_Materias.dia == clase.dia) \
+                          .filter(and_(Asignar_Aulas_Materias.hora_inicial < clase.hora_final, Asignar_Aulas_Materias.hora_final > clase.hora_inicial)) \
+                          .first()
+        
+        if aula_ocupada:
+            raise HTTPException(status_code=409, detail="El aula ya está ocupada en ese día y horario.")
+
         nueva_clase = Asignar_Aulas_Materias(
             id_aula=clase.id_aula,
             id_materia=clase.id_materia,
@@ -193,7 +204,8 @@ def create_Clase(db: Session, clase: Asignar_Aulas_Materias_Data):
     except SQLAlchemyError as e:
         db.rollback()
         print(f"Error general de SQLAlchemy: {e}")
-        raise HTTPException(status_code=500, detail="Error al interactuar con la base de datos.")    
+        raise HTTPException(status_code=500, detail="Error al interactuar con la base de datos.")
+    
 
 #**EDITAR**
 
