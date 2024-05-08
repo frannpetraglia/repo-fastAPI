@@ -64,6 +64,7 @@ function Cartelera(){
             const response = await axios.get(`http://localhost:5555/api/clases/buscar-por-materia/${nombreMateria}`);
             setClases(response.data);
         } catch (error) {
+            alert("No existen clases de esa Materia");
             console.error("Error buscando clases por materia:", error);
         }
     };
@@ -78,6 +79,7 @@ function Cartelera(){
             const response = await axios.get(`http://localhost:5555/api/clases/buscar-por-aula/${nombreAula}`);
             setClases(response.data);
         } catch (error) {
+            alert("Ingrese un nombre de aula válido");
             console.error("Error buscando clases por aula:", error);
         }
     };
@@ -92,6 +94,7 @@ function Cartelera(){
             const response = await axios.get(`http://localhost:5555/api/clases/buscar-por-dia/${selectedDia}`);
             setClases(response.data);
         } catch (error) {
+            alert("No existen clases para ese Día seleccionado");
             console.error("Error buscando clases por día:", error);
         }
     };

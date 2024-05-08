@@ -31,6 +31,13 @@ function AgregarClase(){
     }, []);
 
     const handleAgregarClase = async () => {
+        
+        if(!selectedAula || !selectedMateria || !selectedDia){
+            alert("Asegúrese de completar todos los campos antes de terminar");
+            return;
+        }
+
+
         // Realizar solicitud POST para agregar la clase con los valores seleccionados
         try {
             await axios.post("http://localhost:5555/api/clases/crear-clase", {
@@ -65,7 +72,11 @@ function AgregarClase(){
                     Seleccione un Aula
                 </FormLabel>
                 <InputGroup>
-                    <Select value={selectedAula} onChange={(e) => setSelectedAula(e.target.value)}>
+                    <Select 
+                        placeholder="Seleccione un Aula"
+                        value={selectedAula} 
+                        onChange={(e) => setSelectedAula(e.target.value)}
+                    >
                         {aulas.map((aula) => (
                             <option key={aula.id} value={aula.id}>{aula.nombre}</option>
                         ))}
@@ -81,7 +92,13 @@ function AgregarClase(){
                     Seleccione una Materia
                 </FormLabel>
                 <InputGroup>
-                    <Select value={selectedMateria} onChange={(e) => setSelectedMateria(e.target.value)}>
+                    <Select 
+
+                        placeholder="Seleccione una Materia"
+                        value={selectedMateria} 
+                        onChange={(e) => setSelectedMateria(e.target.value)}
+                        
+                    >
                         {materias.map((materia) => (
                             <option key={materia.id} value={materia.id}>{materia.nombre}</option>
                         ))}
@@ -97,7 +114,11 @@ function AgregarClase(){
                     Seleccione el Dia
                 </FormLabel>
                 <InputGroup>
-                    <Select value={selectedDia} onChange={(e) => setSelectedDia(e.target.value)}>
+                    <Select 
+                        placeholder="Seleccione el dia"
+                        value={selectedDia} 
+                        onChange={(e) => setSelectedDia(e.target.value)}
+                        >
                         <option value="LUNES">Lunes</option>
                         <option value="MARTES">Martes</option>
                         <option value="MIERCOLES">Miércoles</option>

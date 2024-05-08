@@ -22,6 +22,12 @@ function ModificarAula(){
     }, []);
 
     const handleModificarAula = async () => {
+
+        if (!selectedAula || !nuevoNombre) {
+            alert("Los campos no pueden estar vacíos.");
+            return;
+        }
+
         try {
             const aulaSeleccionada = aulas.find(aula => aula.id === parseInt(selectedAula)); // Convertir el ID a entero
             if (!aulaSeleccionada) {

@@ -21,6 +21,12 @@ function BorrarAula(){
     }, []);
 
     const handleBorrarAula = async () => {
+
+        if(!selectedAula){
+            alert("Debe seleccionar un Aula para poder borrar");
+            return;
+        }
+
         try {
             await axios.delete(`http://localhost:5555/api/aulas/borrar-aula-por-nombre/${selectedAula}`);
             alert("¡Aula eliminada exitosamente!");

@@ -20,6 +20,12 @@ function BorrarMateria(){
     }, []);
 
     const handleBorrarMateria = async () => {
+
+        if(!selectedMateria){
+            alert("Debe seleccionar una Materia para poder eliminarla");
+            return;
+        }
+
         try {
             await axios.delete(`http://localhost:5555/api/materias/borrar-materia-por-nombre/${selectedMateria}`);
             alert("¡Materia eliminada exitosamente!");

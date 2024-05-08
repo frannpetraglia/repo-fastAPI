@@ -7,6 +7,12 @@ function AgregarAula(){
     const [nombreAula, setNombreAula] = useState("");
 
     const handleAgregarAula = async () => {
+
+        if(!nombreAula){
+            alert("El campo de nombre no puede estar vacío");
+            return;
+        }
+
         try {
             await axios.post("http://localhost:5555/api/aulas/crear-aula", { nombre: nombreAula });
             setNombreAula("");
@@ -53,8 +59,7 @@ function AgregarAula(){
                     background: '#851ab6',
                     transition: 'filter 300ms'
                 }}
-                onClick={handleAgregarAula}
-                disabled={!nombreAula.trim()}         
+                onClick={handleAgregarAula}      
             >
                 Agregar
             </Button>

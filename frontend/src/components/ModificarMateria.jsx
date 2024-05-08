@@ -22,6 +22,13 @@ function ModificarMateria(){
     }, []);
 
     const handleModificarMateria = async () => {
+
+        if (!selectedMateria || !nuevoNombre || !nuevaCarrera) {
+            alert("Debe elegir una materia y completar los campos.");
+            return;
+        }
+
+
         try {
             await axios.put(`http://localhost:5555/api/materias/editar-materia/${selectedMateria}`, { nombre: nuevoNombre, carrera: nuevaCarrera });
             alert("¡Materia modificada exitosamente!");
