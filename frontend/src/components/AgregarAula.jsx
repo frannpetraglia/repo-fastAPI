@@ -1,7 +1,23 @@
-import React from "react";
+import React, { useState } from "react";
+import axios from "axios";
 import {Button, Center, FormControl, FormHelperText, FormLabel, Input, InputGroup, VStack} from '@chakra-ui/react';
 
 function AgregarAula(){
+
+    const [nombreAula, setNombreAula] = useState("");
+
+    const handleAgregarAula = async () => {
+        try {
+            await axios.post("http://localhost:5555/api/aulas/crear-aula", { nombre: nombreAula });
+            setNombreAula("");
+            alert("¡Aula agregada exitosamente!");
+        } catch (error) {
+            
+            alert("Error al agregar el aula. Por favor, inténtelo de nuevo.");
+            console.error("Error:", error);
+        }
+    };
+
 
     return(
         <VStack>
@@ -19,7 +35,12 @@ function AgregarAula(){
                     Nombre del Aula
                 </FormLabel>
                 <InputGroup>
-                    <Input variant={'outline'} placeholder="Ingrese aqui el nombre del aula" />
+                    <Input
+                        variant={'outline'}
+                        placeholder="Ingrese aquí el nombre del aula"
+                        value={nombreAula}
+                        onChange={(e) => setNombreAula(e.target.value)}
+                    />
                 </InputGroup>
                 <FormHelperText>Las aulas generalmente llevan el caracter A-B segun el piso, y su numero</FormHelperText>
             </FormControl>
@@ -31,7 +52,9 @@ function AgregarAula(){
                     color:'#e8e8f1',
                     background: '#851ab6',
                     transition: 'filter 300ms'
-                }}           
+                }}
+                onClick={handleAgregarAula}
+                disabled={!nombreAula.trim()}         
             >
                 Agregar
             </Button>

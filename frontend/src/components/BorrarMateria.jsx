@@ -1,7 +1,34 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { Button, Center, FormControl, FormHelperText, FormLabel, InputGroup, Select, Text, VStack } from "@chakra-ui/react";
 
 function BorrarMateria(){
+
+    const [materias, setMaterias] = useState([]);
+    const [selectedMateria, setSelectedMateria] = useState("");
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await axios.get("http://localhost:5555/api/materias/");
+                setMaterias(response.data);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        };
+        fetchData();
+    }, []);
+
+    const handleBorrarMateria = async () => {
+        try {
+            await axios.delete(`http://localhost:5555/api/materias/borrar-materia-por-nombre/${selectedMateria}`);
+            alert("¡Materia eliminada exitosamente!");
+            await window.location.reload();
+        } catch (error) {
+            alert("Error al eliminar la materia. Por favor, inténtelo de nuevo.");
+            console.error("Error:", error);
+        }
+    };
 
     return(
         <VStack>
@@ -19,10 +46,10 @@ function BorrarMateria(){
                     Seleccione una Materia
                 </FormLabel>
                 <InputGroup>
-                    <Select placeholder="Elija la que desea eliminar">
-                        <option>Fisica 1</option>
-                        <option>Matematica 1</option>
-                        <option>Logica 2</option>
+                    <Select value={selectedMateria} onChange={(e) => setSelectedMateria(e.target.value)} placeholder="Elija la que desea eliminar">
+                        {materias.map((materia) => (
+                            <option key={materia.id} value={materia.nombre}>{materia.nombre}</option>
+                        ))}
                     </Select>
                 </InputGroup>
                 <FormHelperText>Si no la encuentra aqui, verifique que estuviera previamente creada</FormHelperText>
@@ -36,7 +63,8 @@ function BorrarMateria(){
                     color:'#e8e8f1',
                     background: '#851ab6',
                     transition: 'filter 300ms'
-                }}           
+                }}      
+                onClick={handleBorrarMateria}     
             >
                 Borrar
             </Button>

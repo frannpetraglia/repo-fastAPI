@@ -6,11 +6,27 @@ import crud
 from database import engine, localSession, Base
 from schemas import MateriaData, MateriaId, AulaData, AulaId, Asignar_Aulas_Materias_Data, Asignar_Aulas_Materias_Id
 from models import Materia, Aula, Asignar_Aulas_Materias
+from fastapi.middleware.cors import CORSMiddleware
 
 #para crear las tablas en la base de dato si no estan creadas
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+
+#para permitir el acceso a mi API desde este puerto
+origins = [
+    "http://localhost:5173",
+    
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 #cada vez que llamo a esta funcion, abro una sesion en mi bd
 def get_db():
@@ -33,7 +49,7 @@ def get_aulas(db: Session = Depends(get_db)):         #abro sesion en la db con 
     return crud.get_Aulas(db=db)                                           #pido los datos a traves de la funcion definida en crud
 
 #pide un aula segun su id
-@app.get("/api/aulas/{id: int}")
+@app.get("/api/aulas/{id}")
 def get_aula_by_id(id, db: Session = Depends(get_db)):
     aula_by_id = crud.get_Aula_by_id(db=db, id=id)
     if aula_by_id:
@@ -46,7 +62,7 @@ def get_materias(db: Session = Depends(get_db)):
     return crud.get_Materias(db=db)
 
 #pide una materia segun el id
-@app.get("/api/materias/{id: int}")
+@app.get("/api/materias/{id}")
 def get_materia_by_id(id, db: Session = Depends(get_db)):
     materia_by_id = crud.get_Materia_by_id(db=db, id=id)
     if materia_by_id:
@@ -59,7 +75,7 @@ def get_clases(db: Session = Depends(get_db)):
     return crud.get_Asignar_Aulas_Materias(db=db)
 
 #pide una clase segun su id
-@app.get("/api/clases/{id: int}")
+@app.get("/api/clases/{id}")
 def get_clase_by_id(id, db: Session = Depends(get_db)):
     clase_by_id = crud.get_clase_activa_by_id(db=db, id=id)
     if clase_by_id:
@@ -93,7 +109,7 @@ def get_clases_por_nombre_aula(nom: str, db: Session = Depends(get_db)):
     return clases_x_aula
 
 #pide todas las clases activas de un dia especifico
-@app.get("/api/clases/buscar-por-dia/{dia: str}", response_model=list[Asignar_Aulas_Materias_Id])
+@app.get("/api/clases/buscar-por-dia/{dia}", response_model=list[Asignar_Aulas_Materias_Id])
 def get_clases_por_dia(dia: str, db: Session = Depends(get_db)):
     if not dia:
         raise HTTPException(status_code=400, detail="El string dia no puede estar vacío")   
@@ -153,7 +169,7 @@ def crear_clase(clase: Asignar_Aulas_Materias_Data, db: Session = Depends(get_db
 
 #endpoint para editar un aula 
 
-@app.put("/api/aulas/editar-aula/{id: int}", response_model= AulaData, status_code=status.HTTP_200_OK)
+@app.put("/api/aulas/editar-aula/{id}", response_model= AulaData, status_code=status.HTTP_200_OK)
 def editar_aula(id: int, nueva_info: AulaData, db: Session = Depends(get_db)):
     try:
         aula_actualizada = crud.editar_Aula(db=db, id=id, nueva_info=nueva_info)
@@ -166,7 +182,7 @@ def editar_aula(id: int, nueva_info: AulaData, db: Session = Depends(get_db)):
 
 #para editar una materia
     
-@app.put("/api/materias/editar-materia/{id: int}", response_model= MateriaData, status_code=status.HTTP_200_OK)
+@app.put("/api/materias/editar-materia/{id}", response_model= MateriaData, status_code=status.HTTP_200_OK)
 def editar_materia(id: int, nueva_info: MateriaData, db: Session = Depends(get_db)):
     try:
         materia_actualizada = crud.editar_Materia(db=db, id=id, nueva_info=nueva_info)
@@ -178,7 +194,7 @@ def editar_materia(id: int, nueva_info: MateriaData, db: Session = Depends(get_d
     
 #para editar una clase activa
 
-@app.put("/api/clases/editar-clase/{id: int}", response_model= Asignar_Aulas_Materias_Data, status_code=status.HTTP_200_OK)
+@app.put("/api/clases/editar-clase/{id}", response_model= Asignar_Aulas_Materias_Data, status_code=status.HTTP_200_OK)
 def editar_clase(id: int, nueva_info: Asignar_Aulas_Materias_Data, db: Session = Depends(get_db)):
     clase_actualizada = crud.editar_Clase_Activa(db=db, id=id, nueva_info=nueva_info)
     if clase_actualizada:
@@ -201,7 +217,7 @@ def delete_materia_by_nombre(nom: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Error inesperado: {str(e)}")  # Para capturar cualquier otra excepción
     
 #eliminar una materia por su id
-@app.delete("/api/materias/borrar-materia-por-id/{id: int}", status_code=200)
+@app.delete("/api/materias/borrar-materia-por-id/{id}", status_code=200)
 def delete_materia_by_id(id: int, db: Session = Depends(get_db)):
     try:
         resultado = crud.delete_materia_by_id(db=db, materia_id=id)
@@ -220,7 +236,7 @@ def borrar_aula_by_nombre(nom: str, db: Session = Depends(get_db)):
     
 #eliminar un aula por el id
 
-@app.delete("/api/aulas/borrar-aula-por-id/{id: int}", status_code=200)
+@app.delete("/api/aulas/borrar-aula-por-id/{id}", status_code=200)
 def borrar_aula_by_id(id: int, db: Session = Depends(get_db)):
     try:
         res = crud.delete_aula_by_id(db=db, aula_id=id)
@@ -230,7 +246,7 @@ def borrar_aula_by_id(id: int, db: Session = Depends(get_db)):
     
 #eliminar una clase segun su id
 
-@app.delete("/api/clases/borrar-clase-por-id/{id: int}", status_code= 200)
+@app.delete("/api/clases/borrar-clase-por-id/{id}", status_code= 200)
 def borrar_clase_por_id(id: int, db: Session = Depends(get_db)):
     try:
         res = crud.delete_clase(db=db, clase_id=id)

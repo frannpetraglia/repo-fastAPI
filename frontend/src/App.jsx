@@ -23,7 +23,7 @@ function App() {
       <BrowserRouter>
         <Header />
         <Routes>
-          <Route path='/'></Route>
+          <Route path='/' element={<Cartelera />} exact></Route>
           <Route path='/AgregarAula' element={(<AgregarAula />)}></Route>
           <Route path='/ModificarAula' element={(<ModificarAula />)}></Route>
           <Route path='/BorrarAula' element={(<BorrarAula />)}></Route>

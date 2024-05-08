@@ -1,8 +1,36 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { Button, Center, FormControl, FormHelperText, FormLabel, InputGroup, Select, Text, VStack } from "@chakra-ui/react";
 
 
 function BorrarAula(){
+
+    const [aulas, setAulas] = useState([]);
+    const [selectedAula, setSelectedAula] = useState("");
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await axios.get("http://localhost:5555/api/aulas/");
+                setAulas(response.data);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        };
+        fetchData();
+    }, []);
+
+    const handleBorrarAula = async () => {
+        try {
+            await axios.delete(`http://localhost:5555/api/aulas/borrar-aula-por-nombre/${selectedAula}`);
+            alert("¡Aula eliminada exitosamente!");
+            await window.location.reload();
+        } catch (error) {
+            alert("Error al eliminar el aula. Por favor, inténtelo de nuevo.");
+            console.error("Error:", error);
+        }
+    };
+
 
     return(
         <VStack>
@@ -20,10 +48,10 @@ function BorrarAula(){
                     Seleccione un Aula
                 </FormLabel>
                 <InputGroup>
-                    <Select placeholder="Elija la que desea eliminar">
-                        <option>A01</option>
-                        <option>A02</option>
-                        <option>A03</option>
+                    <Select value={selectedAula} onChange={(e) => setSelectedAula(e.target.value)} placeholder="Elija la que desea eliminar">
+                        {aulas.map((aula) => (
+                            <option key={aula.id} value={aula.nombre}>{aula.nombre}</option>
+                        ))}
                     </Select>
                 </InputGroup>
                 <FormHelperText>Si no la encuentra aqui, verifique que estuviera previamente creada</FormHelperText>
@@ -37,7 +65,8 @@ function BorrarAula(){
                     color:'#e8e8f1',
                     background: '#851ab6',
                     transition: 'filter 300ms'
-                }}           
+                }}        
+                onClick={handleBorrarAula}   
             >
                 Borrar
             </Button>

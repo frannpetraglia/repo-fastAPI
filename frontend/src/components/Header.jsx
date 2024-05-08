@@ -67,7 +67,7 @@ function Header(){
                             </MenuItem>
                         </MenuList>
                     </Menu>
-                    <Button color={'#9100ff'}>
+                    <Button color={'#9100ff'} onClick={()=>window.location.reload()}>                        
                         <Link to="/Cartelera">
                             Cartelera
                         </Link>
